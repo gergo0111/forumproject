@@ -47,14 +47,30 @@ const CommentSection = ({ user, questionId, deleteComment }) => {
     }
   }, [showComments, fetchComments]);
 
-  const addComment = () => {
-    // Hozzászólás hozzáadása (pl. POST kérés az API felé)
-    console.log("Hozzászólás:", commentText, "válasz erre:", replyTo);
-    // Ide tedd be a komment mentését a backendhez, majd:
+  const addComment = async () => {
+  if (!commentText.trim()) return;
+  try {
+    const response = await fetch(`http://localhost:3000/questions/${questionId}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: commentText,
+        username: user.username,  // feltételezve, hogy a user objektum tartalmazza a felhasználónevet
+        parentId: replyTo
+      }),
+    });
+    if (!response.ok) {
+      throw new Error("Hiba a komment mentésekor");
+    }
+    // Ha sikeres volt a POST kérés, frissítjük a kommentek listáját
     fetchComments();
     setCommentText("");
     setReplyTo(null);
-  };
+  } catch (error) {
+    console.error("Hiba a komment mentésekor:", error);
+  }
+};
+
 
   return (
     <div className="comment-section">
